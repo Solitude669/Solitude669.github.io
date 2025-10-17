@@ -23,9 +23,11 @@
 ---
 
 ## 目录结构
+```
 solitude.github.io
 ├── index.html   ← 单页源码（含 HTML/CSS/JS）
 └── README.md    ← 本项目说明
+```
 
 ---
 
