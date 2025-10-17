@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>我的日常分享</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --theme: #ff6f61;
+      --bg: #fffaf7;
+      --card: #ffffff;
+      --radius: 12px;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: #333;
+      padding-bottom: 80px;
+    }
+    header {
+      background: var(--theme);
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .container {
+      max-width: 640px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .post-box {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      margin-bottom: 24px;
+    }
+    textarea {
+      width: 100%;
+      border: 1px solid #e6e6e6;
+      border-radius: 8px;
+      resize: vertical;
+      min-height: 90px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .tools label {
+      cursor: pointer;
+      background: #f3f3f3;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background: var(--theme);
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .card img {
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .time {
+      font-size: 12px;
+      color: #999;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>我的日常分享</header>
+
+  <div class="container">
+    <!-- 发布框 -->
+    <div class="post-box">
+      <textarea id="text" placeholder="今天发生了什么有趣的事？"></textarea>
+      <div class="tools">
+        <label for="img">📷 图片</label>
+        <input type="file" id="img" accept="image/*" />
+        <button onclick="publish()">发布</button>
+      </div>
+    </div>
+
+    <!-- 动态列表 -->
+    <div id="list"></div>
+  </div>
+
+<script>
+  const textEl = document.getElementById('text');
+  const fileEl = document.getElementById('img');
+  const listEl = document.getElementById('list');
+
+  let imgData = ''; // base64 预览
+
+  fileEl.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => imgData = ev.target.result;
+    reader.readAsDataURL(f);
+  });
+
+  function publish() {
+    const txt = textEl.value.trim();
+    if (!txt && !imgData) return alert('写点内容或选张图吧~');
+    const post = {
+      txt,
+      img: imgData,
+      time: new Date().toLocaleString()
+    };
+    savePost(post);
+    textEl.value = '';
+    fileEl.value = '';
+    imgData = '';
+    render();
+  }
+
+  /* 新增：删除功能 */
+  function del(index) {
+    const arr = JSON.parse(localStorage.getItem('posts') || '[]');
+    arr.splice(index, 1);        // 去掉这一条
+    localStorage.setItem('posts', JSON.stringify(arr));
+    render();                    // 重新渲染
+  }
+
+  function savePost(p) {
+    const arr = JSON.parse(localStorage.getItem('posts') || '[]');
+    arr.unshift(p);
+    localStorage.setItem('posts', JSON.stringify(arr));
+  }
+
+  function render() {
+    const arr = JSON.parse(localStorage.getItem('posts') || '[]');
+    listEl.innerHTML = arr.map((p, idx) => `
+      <div class="card" style="position:relative;">
+        <!-- 删除按钮 -->
+        <span onclick="del(${idx})"
+              style="position:absolute;right:10px;top:10px;
+                     cursor:pointer;color:#999;font-size:18px;">×</span>
+
+        <div>${p.txt}</div>
+        ${p.img ? `<img src="${p.img}" />` : ''}
+        <div class="time">${p.time}</div>
+      </div>
+    `).join('');
+  }
+
+  // 首次加载
+  render();
+</script>
+</body>
+</html>
